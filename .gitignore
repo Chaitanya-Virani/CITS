@@ -24,4 +24,4 @@ anaconda_projects/
 # --- Models ---
 # note: Keep .pkl commented out if you WANT to upload the model to GitHub.
 # If the model file is huge (>100MB), uncomment the line below to ignore it.
-# *.pkl
+ *.pkl
