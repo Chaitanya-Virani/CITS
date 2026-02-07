@@ -1,0 +1,27 @@
+# --- Python & Virtual Environment ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+
+# --- IDE Settings (PyCharm/VS Code) ---
+.idea/
+.vscode/
+
+# --- Data (Never commit datasets) ---
+*.csv
+amazon_vfl_reviews.csv
+
+# --- Anaconda / Metadata ---
+anaconda_projects/
+
+# --- System Files ---
+.DS_Store
+
+# --- Models ---
+# note: Keep .pkl commented out if you WANT to upload the model to GitHub.
+# If the model file is huge (>100MB), uncomment the line below to ignore it.
+# *.pkl
