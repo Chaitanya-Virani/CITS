@@ -3,25 +3,41 @@
 venv/
 __pycache__/
 *.pyc
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
 
 # --- Jupyter Notebooks ---
 .ipynb_checkpoints/
+*.ipynb
 
-# --- IDE Settings (PyCharm/VS Code) ---
+# --- IDE Settings ---
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
 
-# --- Data (Never commit datasets) ---
+# --- Data ---
 *.csv
 amazon_vfl_reviews.csv
+
+# --- Database ---
+data/*.db
 
 # --- Anaconda / Metadata ---
 anaconda_projects/
 
 # --- System Files ---
 .DS_Store
+Thumbs.db
 
-# --- Models ---
-# note: Keep .pkl commented out if you WANT to upload the model to GitHub.
-# If the model file is huge (>100MB), uncomment the line below to ignore it.
- *.pkl
+# --- Models (large binaries) ---
+# Uncomment to ignore if > 100MB
+# *.pkl
+
+# --- Legacy UI ---
+UI/
