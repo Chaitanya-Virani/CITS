@@ -151,46 +151,61 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-        </div>
-
-        <!-- Performance Comparison Table -->
-        <div class="card mt-10" style="overflow: hidden;">
-            <div class="px-8 py-8 flex justify-between items-center" style="flex-wrap: wrap; gap: 12px;">
-                <div>
-                    <p class="label mb-1">Model Delta</p>
-                    <h2 class="text-xl font-semibold tracking-tight">Performance Comparison</h2>
+                <!-- NEW: System Settings Card -->
+                <div class="card p-8">
+                    <p class="label mb-6">System Settings</p>
+                    <div class="space-y-4">
+                        <p class="text-sm text-muted">
+                            Initialize your database with initial products and reviews (only needs to be run once).
+                        </p>
+                        <button id="seed-btn" class="btn btn-secondary w-full"
+                            style="justify-content: center; gap: 8px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">database</span>
+                            Seed Database
+                        </button>
+                        <p id="seed-status-msg" class="text-xs text-center text-muted mt-2" style="display: none;"></p>
+                    </div>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Metric</th>
-                            <th>Current</th>
-                            <th>Previous</th>
-                            <th class="text-right">Delta</th>
-                        </tr>
-                    </thead>
-                    <tbody id="comparison-tbody">
-                        <tr>
-                            <td colspan="4" class="loading-text" style="padding: 24px 32px;">Loading comparison data…
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-        <!-- View Reviews Button -->
-        <div class="mt-10 flex justify-center">
-            <a href="/admin/reviews" class="btn btn-primary"
-                style="display:inline-flex; align-items:center; gap:8px; padding:12px 32px; font-size:15px; text-decoration:none;">
-                <span class="material-symbols-outlined" style="font-size:20px;">reviews</span>
-                View Product Reviews
-            </a>
-        </div>
+            <!-- Performance Comparison Table -->
+            <div class="card mt-10" style="overflow: hidden;">
+                <div class="px-8 py-8 flex justify-between items-center" style="flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <p class="label mb-1">Model Delta</p>
+                        <h2 class="text-xl font-semibold tracking-tight">Performance Comparison</h2>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Current</th>
+                                <th>Previous</th>
+                                <th class="text-right">Delta</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparison-tbody">
+                            <tr>
+                                <td colspan="4" class="loading-text" style="padding: 24px 32px;">Loading comparison
+                                    data…
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- View Reviews Button -->
+            <div class="mt-10 flex justify-center">
+                <a href="/admin/reviews" class="btn btn-primary"
+                    style="display:inline-flex; align-items:center; gap:8px; padding:12px 32px; font-size:15px; text-decoration:none;">
+                    <span class="material-symbols-outlined" style="font-size:20px;">reviews</span>
+                    View Product Reviews
+                </a>
+            </div>
 
     </main>
 

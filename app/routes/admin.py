@@ -7,9 +7,6 @@ import numpy as np
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
-from sklearn.model_selection import train_test_split
-
 from app.database import get_db, SessionLocal
 from app.models import Review, Product
 from app.schemas import (
@@ -17,6 +14,7 @@ from app.schemas import (
     DriftResponse, DriftSignal,
     RetrainResponse, RetrainStatusResponse,
     UrgencyKeywordsResponse, UrgencyKeywordSet,
+    ReviewResponse, 
 )
 from app.utils import clean_text, compute_dataset_health
 from ml.evaluate import evaluate_model
@@ -25,6 +23,7 @@ from ml.drift_detection import detect_drift
 from ml.retrain_pipeline import run_retrain, get_retrain_status
 from ml.urgency_extraction import load_urgency_keywords
 from app.routes.reviews import get_model
+from app.seed import seed as run_seed_logic
 
 router = APIRouter(prefix="/api", tags=["Admin"])
 
@@ -106,6 +105,17 @@ def _retrain_task():
     db = SessionLocal()
     try: run_retrain(db)
     finally: db.close()
+
+def _seed_task():
+    """Run seeder in background."""
+    try: run_seed_logic()
+    except Exception as e: print(f"❌ Initial seed failed: {e}")
+
+@router.post("/seed")
+def seed_database(background_tasks: BackgroundTasks):
+    """Trigger the record seeder as a background task (for Render free tier)."""
+    background_tasks.add_task(_seed_task)
+    return {"message": "Database seeding started in background.", "status": "seeding_started"}
 
 @router.post("/retrain", response_model=RetrainResponse)
 def retrain_model(background_tasks: BackgroundTasks):

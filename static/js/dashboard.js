@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadModelMetrics();
     loadDrift();
     setupRetrain();
+    setupSeed();
 });
 
 
@@ -279,4 +280,44 @@ async function pollRetrainStatus(btn) {
             console.error('Polling error:', err);
         }
     }, 2000);
+}
+
+
+// ============================================================
+// DATABASE SEEDING
+// ============================================================
+
+function setupSeed() {
+    const btn = document.getElementById('seed-btn');
+    const msg = document.getElementById('seed-status-msg');
+    if (!btn) return;
+
+    btn.addEventListener('click', async () => {
+        const confirmed = confirm('This will populate the database with initial products and reviews from the CSV. It takes a few minutes. Continue?');
+        if (!confirmed) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Seeding...';
+        msg.style.display = 'block';
+        msg.textContent = '📦 Seeding started in background...';
+
+        try {
+            const res = await fetch('/api/seed', { method: 'POST' });
+            if (!res.ok) throw new Error('Seeding request failed');
+
+            // Logic: we don't need highly complex polling here, just alert.
+            // Seeding 4k reviews might take 1-2 mins on free tier.
+            alert('✅ Seeding has been triggered in the background. Please wait 1-2 minutes and refresh the dashboard.');
+
+            // Re-enable after a bit to prevent double clicks
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = 'Seed Database';
+            }, 5000);
+        } catch (err) {
+            alert('❌ Seed failed: ' + err.message);
+            btn.disabled = false;
+            btn.textContent = 'Seed Database';
+        }
+    });
 }
