@@ -22,8 +22,8 @@ build/
 *~
 
 # --- Data ---
-*.csv
-amazon_vfl_reviews.csv
+# allow amazon_vfl_reviews.csv for seeding on Render
+!amazon_vfl_reviews.csv
 
 # --- Database ---
 data/*.db
