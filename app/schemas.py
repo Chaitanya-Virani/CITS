@@ -92,6 +92,8 @@ class ModelMetricsResponse(BaseModel):
     recall: float = 0.0
     last_retrain: str = "—"
     total_reviews: int = 0
+    dataset_cleaned: int = 0
+    dataset_rejected: int = 0
     sentiment_distribution: list[float] = []
     fake_probability: list[float] = []
     comparison: list[ComparisonRow] = []
@@ -99,9 +101,23 @@ class ModelMetricsResponse(BaseModel):
 
 # === Admin — Drift ===
 
+class DriftSignal(BaseModel):
+    shift: float = 0.0
+    recent_pct: Optional[float] = None
+    overall_pct: Optional[float] = None
+    recent_mean: Optional[float] = None
+    overall_mean: Optional[float] = None
+    new_token_count: Optional[int] = None
+    total_recent_tokens: Optional[int] = None
+
 class DriftResponse(BaseModel):
-    drift_level: str = "low"  # low / medium / high
+    drift_level: str = "Stable"  # Stable / Moderate Drift / High Drift
+    score: float = 0.0
     dataset_health: float = 0.0
+    sentiment: Optional[DriftSignal] = None
+    fake_probability: Optional[DriftSignal] = None
+    vocabulary: Optional[DriftSignal] = None
+    # Legacy compat
     recent_positive_pct: float = 0.0
     overall_positive_pct: float = 0.0
 
@@ -110,6 +126,23 @@ class DriftResponse(BaseModel):
 
 class RetrainResponse(BaseModel):
     message: str
+    status: str = "retraining_started"  # retraining_started / success / rejected / error
     accuracy: float = 0.0
     f1_score: float = 0.0
-    status: str = "success"
+
+class RetrainStatusResponse(BaseModel):
+    running: bool = False
+    last_result: Optional[dict] = None
+
+
+# === Admin — Urgency Keywords ===
+
+class UrgencyKeywordSet(BaseModel):
+    english: list[str] = []
+    hinglish: list[str] = []
+
+class UrgencyKeywordsResponse(BaseModel):
+    base_keywords: UrgencyKeywordSet
+    learned_keywords: UrgencyKeywordSet
+    last_updated: str = "—"
+    total_keywords: int = 0

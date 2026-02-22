@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CITS | Product Reviews</title>
+    <meta name="description" content="Product-wise review analysis with sentiment breakdown." />
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-float">
+        <div class="container-wide navbar-inner">
+            <div class="flex items-center gap-8">
+                <div class="navbar-brand">
+                    <div class="navbar-logo"><span>C</span></div>
+                    <span class="navbar-title">CITS Analytics</span>
+                </div>
+                <div class="navbar-links">
+                    <a href="/user">Product Analysis</a>
+                    <a href="/admin">Dashboard</a>
+                    <a href="/admin/reviews" class="active">Reviews</a>
+                </div>
+            </div>
+            <div class="navbar-actions">
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+                    <span class="material-symbols-outlined icon-sun">light_mode</span>
+                    <span class="material-symbols-outlined icon-moon">dark_mode</span>
+                </button>
+                <div class="avatar">
+                    <div style="width: 100%; height: 100%; background: var(--color-muted); border-radius: 50%;"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container-wide mt-8">
+        <header class="mb-8">
+            <h1 class="text-4xl font-semibold tracking-tight">Product Reviews</h1>
+            <p class="text-base text-muted mt-2">Sentiment breakdown per product — expand to view negative reviews</p>
+        </header>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-12 gap-6 mb-8">
+            <div class="col-span-3">
+                <div class="card p-6 text-center">
+                    <p class="label mb-2">Total Products</p>
+                    <p id="stat-products" class="text-3xl font-semibold">—</p>
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="card p-6 text-center">
+                    <p class="label mb-2">Total Reviews</p>
+                    <p id="stat-reviews" class="text-3xl font-semibold">—</p>
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="card p-6 text-center" style="border-left: 3px solid var(--color-green);">
+                    <p class="label mb-2">Positive Reviews</p>
+                    <p id="stat-positive" class="text-3xl font-semibold" style="color: var(--color-green);">—</p>
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="card p-6 text-center" style="border-left: 3px solid var(--color-red);">
+                    <p class="label mb-2">Negative Reviews</p>
+                    <p id="stat-negative" class="text-3xl font-semibold" style="color: var(--color-red);">—</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search & Sort Controls -->
+        <div class="mb-6" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <input type="text" id="product-search" placeholder="Search products…"
+                style="flex: 1; max-width: 400px; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--color-border); background: var(--color-white); color: var(--color-black); font-family: inherit; font-size: 14px;" />
+            <select id="sort-select"
+                style="padding: 10px 16px; border-radius: 10px; border: 1px solid var(--color-border); background: var(--color-white); color: var(--color-black); font-family: inherit; font-size: 14px; cursor: pointer;">
+                <option value="name">Sort by Name</option>
+                <option value="positive-desc">Most Positive ↓</option>
+                <option value="positive-asc">Least Positive ↑</option>
+                <option value="negative-desc">Most Negative ↓</option>
+                <option value="negative-asc">Least Negative ↑</option>
+                <option value="total-desc">Most Reviews ↓</option>
+            </select>
+        </div>
+
+        <!-- Product List -->
+        <div id="product-review-list">
+            <div class="card p-8">
+                <p class="loading-text text-sm">Loading product reviews…</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container-wide footer py-12">
+        <div>© 2025 CITS Intelligent Trust</div>
+        <div class="footer-links">
+            <a href="#">Security</a>
+            <a href="#">Privacy</a>
+            <a href="#">API Docs</a>
+        </div>
+    </footer>
+
+    <!-- Theme Script -->
+    <script>
+        (function () {
+            const saved = localStorage.getItem('cits-theme');
+            if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            document.addEventListener('DOMContentLoaded', () => {
+                const btn = document.getElementById('theme-toggle');
+                if (!btn) return;
+                const update = () => {
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    btn.querySelector('.material-symbols-outlined').textContent = isDark ? 'light_mode' : 'dark_mode';
+                };
+                update();
+                btn.addEventListener('click', () => {
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+                    localStorage.setItem('cits-theme', isDark ? 'light' : 'dark');
+                    update();
+                });
+            });
+        })();
+    </script>
+    <script src="/static/js/reviews.js"></script>
+</body>
+
+</html>

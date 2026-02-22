@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CITS | Customer Intelligent Trust Scoring</title>
+    <meta name="description" content="Analyze product reviews with AI-powered trust scoring and sentiment analysis." />
+    <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container navbar-inner">
+            <div class="navbar-brand">
+                <div class="navbar-logo"><span>C</span></div>
+                <span class="navbar-title">CITS</span>
+            </div>
+            <div class="navbar-links">
+                <a href="/user" class="active">Product Analysis</a>
+                <a href="/admin">Dashboard</a>
+            </div>
+            <div class="navbar-actions">
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+                    <span class="material-symbols-outlined icon-sun">light_mode</span>
+                    <span class="material-symbols-outlined icon-moon">dark_mode</span>
+                </button>
+                <a href="#" class="btn-ghost text-sm">Sign In</a>
+                <a href="#" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container" style="padding-top: 48px; padding-bottom: 48px;">
+
+        <!-- Page Header -->
+        <header class="mb-10">
+            <h1 class="text-4xl font-semibold tracking-tight">Product Trust Analysis</h1>
+            <p class="text-base text-muted mt-2 leading-relaxed" style="max-width: 600px;">
+                AI-powered review authenticity scoring and sentiment breakdown.
+            </p>
+            <!-- Product Selector -->
+            <div class="mt-4">
+                <select id="product-selector"
+                    style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-white); color: var(--color-black); font-family: inherit; font-size: 14px; min-width: 300px; cursor: pointer;">
+                    <option value="">Select a product…</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-12" style="gap: 32px;">
+
+            <!-- Left Column: Product Info -->
+            <div class="col-span-5 space-y-8">
+
+                <!-- Product Card -->
+                <div class="card card-lg p-8">
+                    <div class="label mb-6">Product Details</div>
+                    <div class="space-y-4">
+                        <div>
+                            <h2 id="product-name" class="text-2xl font-semibold tracking-tight">Loading…</h2>
+                            <p id="product-category" class="text-sm text-muted mt-1 font-medium">—</p>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="flex gap-8">
+                            <div>
+                                <p class="label">Overall Rating</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">star</span>
+                                    <span id="overall-rating" class="text-base font-semibold">—</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="label">Total Reviews</p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">equalizer</span>
+                                    <span id="total-reviews" class="text-base font-semibold">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating Breakdown -->
+                <div class="card p-6">
+                    <h3 class="text-sm font-semibold mb-4">Rating Breakdown</h3>
+                    <div id="rating-breakdown" class="space-y-4">
+                        <p class="loading-text text-sm">Loading breakdown…</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Score + Summary + Reviews -->
+            <div class="col-span-7 space-y-8" style="padding-left: 8px;">
+
+                <!-- Trust Score -->
+                <div class="card card-lg p-10 flex items-center gap-8" style="flex-wrap: wrap;">
+                    <div id="trust-score" class="score-ring-wrapper">
+                        <svg class="score-ring-svg" viewBox="0 0 100 100">
+                            <circle class="score-ring-bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="score-ring-fill" cx="50" cy="50" r="45" stroke-dasharray="282.7"
+                                stroke-dashoffset="282.7"></circle>
+                        </svg>
+                        <div class="score-ring-value">
+                            <span class="score-ring-number">—</span>
+                            <span class="score-ring-label">CITS Score</span>
+                        </div>
+                    </div>
+                    <div class="flex-1" style="min-width: 200px;">
+                        <div class="badge badge-dark mb-4">
+                            <span class="material-symbols-outlined" style="font-size: 14px;">verified</span>
+                            Trust Profile
+                        </div>
+                        <h3 class="text-2xl font-semibold tracking-tight">Authenticity Analysis</h3>
+                        <p class="text-muted text-base mt-2 leading-relaxed">
+                            Trust score is calculated from review sentiment, verified purchase ratio, and anomaly
+                            detection.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- AI Summary -->
+                <div class="card p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="ai-icon"
+                            style="width: 32px; height: 32px; border-radius: 50%; background: var(--color-black); display: flex; align-items: center; justify-content: center;">
+                            <span class="material-symbols-outlined text-white"
+                                style="font-size: 16px;">auto_awesome</span>
+                        </div>
+                        <h4 class="text-base font-semibold">AI Summary</h4>
+                    </div>
+                    <p id="ai-summary" class="text-base leading-relaxed">Loading AI summary…</p>
+                </div>
+
+                <!-- Review List -->
+                <div class="card p-8">
+                    <h3 class="text-sm font-semibold mb-4">Recent Reviews</h3>
+                    <div id="review-list" style="max-height: 500px; overflow-y: auto; padding-right: 8px;">
+                        <p class="loading-text text-sm">Select a product to see reviews.</p>
+                    </div>
+                </div>
+
+                <!-- Submit Review Form -->
+                <div class="card p-8">
+                    <h3 class="text-sm font-semibold mb-4">Write a Review</h3>
+                    <form id="review-form" class="space-y-4">
+                        <div>
+                            <label class="label mb-1" style="display: block;">Your Name</label>
+                            <input type="text" id="review-author" placeholder="Anonymous"
+                                style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-white); color: var(--color-black); font-family: inherit; font-size: 14px;" />
+                        </div>
+                        <div>
+                            <label class="label mb-1" style="display: block;">Rating</label>
+                            <select id="review-rating"
+                                style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-white); color: var(--color-black); font-family: inherit; font-size: 14px;">
+                                <option value="5">★★★★★ (5)</option>
+                                <option value="4">★★★★☆ (4)</option>
+                                <option value="3">★★★☆☆ (3)</option>
+                                <option value="2">★★☆☆☆ (2)</option>
+                                <option value="1">★☆☆☆☆ (1)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="label mb-1" style="display: block;">Review</label>
+                            <textarea id="review-text" rows="4" placeholder="Share your experience with this product…"
+                                style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-white); color: var(--color-black); font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                            <span id="review-result" class="text-sm"></span>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container footer py-10">
+        <div>© 2025 CITS Intelligence Systems.</div>
+        <div class="flex gap-8">
+            <a href="#">Privacy</a>
+            <a href="#">Security</a>
+            <a href="#">Documentation</a>
+        </div>
+    </footer>
+
+    <script>
+        // Theme toggle — runs immediately to prevent flash
+        (function () {
+            const saved = localStorage.getItem('cits-theme');
+            if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const btn = document.getElementById('theme-toggle');
+                if (!btn) return;
+                btn.addEventListener('click', function () {
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    if (isDark) {
+                        document.documentElement.removeAttribute('data-theme');
+                        localStorage.setItem('cits-theme', 'light');
+                    } else {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('cits-theme', 'dark');
+                    }
+                });
+            });
+        })();
+    </script>
+    <script src="/static/js/main.js"></script>
+</body>
+
+</html>

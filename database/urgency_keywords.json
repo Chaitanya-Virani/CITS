@@ -1,0 +1,49 @@
+{
+    "base_keywords": {
+        "english": [
+            "fake",
+            "fraud",
+            "scam",
+            "cheat",
+            "duplicate",
+            "used product",
+            "broken",
+            "damaged",
+            "return",
+            "refund",
+            "waste",
+            "useless",
+            "worst",
+            "bad quality",
+            "leak",
+            "defective",
+            "counterfeit",
+            "misleading",
+            "dangerous",
+            "hazard"
+        ],
+        "hinglish": [
+            "ghatiya",
+            "nakli",
+            "chor",
+            "tuta",
+            "bekaar",
+            "bakwas",
+            "dhoka",
+            "paisa barbaad",
+            "kharab",
+            "bekar",
+            "wahiyat",
+            "ganda",
+            "jhoota",
+            "makaar",
+            "lootere"
+        ]
+    },
+    "learned_keywords": {
+        "english": [],
+        "hinglish": []
+    },
+    "last_updated": "2026-02-16T23:17:00",
+    "total_keywords": 35
+}

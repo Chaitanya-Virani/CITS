@@ -1,0 +1,11 @@
+{
+  "current_version": "v1.0",
+  "accuracy": 0.9337,
+  "f1_score": 0.951,
+  "precision": 0.9703,
+  "recall": 0.9325,
+  "last_retrained": "2026-02-16T23:17:00",
+  "dataset_size": 2787,
+  "dataset_cleaned": 2604,
+  "dataset_rejected": 183
+}

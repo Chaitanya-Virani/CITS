@@ -23,23 +23,24 @@ def clean_text(text: str) -> str:
 
 
 # ============================================================
-# URGENCY DETECTION
+# URGENCY DETECTION (Adaptive Bilingual)
 # ============================================================
 
-URGENT_KEYWORDS = [
-    "fake", "fraud", "scam", "cheat", "chor", "duplicate", "used product",
-    "broken", "damaged", "tuta", "return", "refund", "waste", "useless",
-    "worst", "ghatiya", "bad quality", "leak"
-]
+def check_urgency(text: str) -> dict:
+    """
+    Check if review text is urgent using adaptive bilingual keyword matching.
+    Supports English + Hinglish with learned keywords from retraining.
 
-
-def check_urgency(text: str) -> bool:
-    """Check if review text contains urgent/negative keywords."""
-    text = str(text).lower()
-    for word in URGENT_KEYWORDS:
-        if word in text:
-            return True
-    return False
+    Returns:
+        {
+            "is_urgent": bool,
+            "matched_keywords": list[str],
+            "urgency_score": int,  # count of matched keywords
+            "language": "en" | "hinglish"
+        }
+    """
+    from ml.urgency_extraction import check_urgency_adaptive
+    return check_urgency_adaptive(text)
 
 
 # ============================================================
