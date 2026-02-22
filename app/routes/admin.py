@@ -6,7 +6,9 @@ All persistence now uses PostgreSQL via SQLAlchemy.
 import numpy as np
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
+from sklearn.model_selection import train_test_split
 from app.database import get_db, SessionLocal
 from app.models import Review, Product
 from app.schemas import (
