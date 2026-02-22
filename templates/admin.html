@@ -152,19 +152,26 @@
                     </div>
                 </div>
 
-                <!-- NEW: System Settings Card -->
+
+                <!-- Urgency Keywords Card -->
                 <div class="card p-8">
-                    <p class="label mb-6">System Settings</p>
+                    <p class="label mb-6">Urgency Registry</p>
                     <div class="space-y-4">
-                        <p class="text-sm text-muted">
-                            Initialize your database with initial products and reviews (only needs to be run once).
-                        </p>
-                        <button id="seed-btn" class="btn btn-secondary w-full"
-                            style="justify-content: center; gap: 8px;">
-                            <span class="material-symbols-outlined" style="font-size: 18px;">database</span>
-                            Seed Database
-                        </button>
-                        <p id="seed-status-msg" class="text-xs text-center text-muted mt-2" style="display: none;"></p>
+                        <p class="text-xs text-muted mb-2">Keywords used to flag reviews as "URGENT":</p>
+
+                        <div>
+                            <p class="text-[10px] uppercase tracking-widest text-muted mb-2 font-bold">English</p>
+                            <div id="en-keywords" class="flex flex-wrap gap-2">
+                                <span class="loading-text text-[11px] p-0">Loading keywords…</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <p class="text-[10px] uppercase tracking-widest text-muted mb-2 font-bold">Hinglish</p>
+                            <div id="hi-keywords" class="flex flex-wrap gap-2">
+                                <span class="loading-text text-[11px] p-0">Loading keywords…</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

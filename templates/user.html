@@ -11,28 +11,31 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container navbar-inner">
-            <div class="navbar-brand">
-                <div class="navbar-logo"><span>C</span></div>
-                <span class="navbar-title">CITS</span>
-            </div>
-            <div class="navbar-links">
-                <a href="/user" class="active">Product Analysis</a>
-                <a href="/admin">Dashboard</a>
+    <nav class="navbar navbar-float">
+        <div class="container-wide navbar-inner">
+            <div class="flex items-center gap-8">
+                <div class="navbar-brand">
+                    <div class="navbar-logo"><span>C</span></div>
+                    <span class="navbar-title">CITS Analytics</span>
+                </div>
+                <div class="navbar-links">
+                    <a href="/user" class="active">Product Analysis</a>
+                    <a href="/admin">Dashboard</a>
+                </div>
             </div>
             <div class="navbar-actions">
                 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
                     <span class="material-symbols-outlined icon-sun">light_mode</span>
                     <span class="material-symbols-outlined icon-moon">dark_mode</span>
                 </button>
-                <a href="#" class="btn-ghost text-sm">Sign In</a>
-                <a href="#" class="btn btn-primary">Get Started</a>
+                <div class="avatar">
+                    <div style="width: 100%; height: 100%; background: var(--color-muted); border-radius: 50%;"></div>
+                </div>
             </div>
         </div>
     </nav>
 
-    <main class="container" style="padding-top: 48px; padding-bottom: 48px;">
+    <main class="container-wide" style="padding-top: 48px; padding-bottom: 48px;">
 
         <!-- Page Header -->
         <header class="mb-10">
@@ -180,7 +183,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="container footer py-10">
+    <footer class="container-wide footer py-10">
         <div>© 2025 CITS Intelligence Systems.</div>
         <div class="flex gap-8">
             <a href="#">Privacy</a>

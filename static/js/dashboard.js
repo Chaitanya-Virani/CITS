@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadModelMetrics();
     loadDrift();
     setupRetrain();
-    setupSeed();
+    loadUrgencyKeywords();
 });
 
 
@@ -284,40 +284,47 @@ async function pollRetrainStatus(btn) {
 
 
 // ============================================================
-// DATABASE SEEDING
+// URGENCY KEYWORDS
 // ============================================================
 
-function setupSeed() {
-    const btn = document.getElementById('seed-btn');
-    const msg = document.getElementById('seed-status-msg');
-    if (!btn) return;
+async function loadUrgencyKeywords() {
+    const enContainer = document.getElementById('en-keywords');
+    const hiContainer = document.getElementById('hi-keywords');
+    if (!enContainer || !hiContainer) return;
 
-    btn.addEventListener('click', async () => {
-        const confirmed = confirm('This will populate the database with initial products and reviews from the CSV. It takes a few minutes. Continue?');
-        if (!confirmed) return;
+    try {
+        const res = await fetch('/api/urgency-keywords');
+        if (!res.ok) throw new Error('Failed to load keywords');
+        const data = await res.json();
 
-        btn.disabled = true;
-        btn.textContent = 'Seeding...';
-        msg.style.display = 'block';
-        msg.textContent = '📦 Seeding started in background...';
+        renderKeywords(enContainer, [
+            ...data.base_keywords.english,
+            ...data.learned_keywords.english
+        ]);
 
-        try {
-            const res = await fetch('/api/seed', { method: 'POST' });
-            if (!res.ok) throw new Error('Seeding request failed');
+        renderKeywords(hiContainer, [
+            ...data.base_keywords.hinglish,
+            ...data.learned_keywords.hinglish
+        ]);
+    } catch (err) {
+        console.error(err);
+        enContainer.innerHTML = '<span class="text-xs text-red">Failed to load</span>';
+        hiContainer.innerHTML = '<span class="text-xs text-red">Failed to load</span>';
+    }
+}
 
-            // Logic: we don't need highly complex polling here, just alert.
-            // Seeding 4k reviews might take 1-2 mins on free tier.
-            alert('✅ Seeding has been triggered in the background. Please wait 1-2 minutes and refresh the dashboard.');
+function renderKeywords(container, keywords) {
+    if (!keywords || keywords.length === 0) {
+        container.innerHTML = '<span class="text-xs text-muted italic">No keywords registered</span>';
+        return;
+    }
 
-            // Re-enable after a bit to prevent double clicks
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.textContent = 'Seed Database';
-            }, 5000);
-        } catch (err) {
-            alert('❌ Seed failed: ' + err.message);
-            btn.disabled = false;
-            btn.textContent = 'Seed Database';
-        }
-    });
+    // Sort alphabetically and remove duplicates
+    const uniqueKws = [...new Set(keywords)].sort();
+
+    container.innerHTML = uniqueKws.map(kw => `
+        <span class="badge" style="font-size: 10px; padding: 2px 8px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-black); border-radius: 4px; display: inline-block; margin-bottom: 4px;">
+            ${kw}
+        </span>
+    `).join(' ');
 }
