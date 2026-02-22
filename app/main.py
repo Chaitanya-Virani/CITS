@@ -4,7 +4,7 @@ FastAPI Application Entry Point
 """
 import os
 import pickle
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from sklearn.model_selection import train_test_split
@@ -43,20 +43,71 @@ def on_startup():
     init_db()
     print("✅ Database initialized")
 
-    # Initialize metadata with real metrics if needed
+    # Important: Model initialization for first-run or cloud environments
+    _initialize_model_store()
+
+    # Initialize metadata & drift
     _initialize_metadata()
-    print("✅ Model metadata ready")
+    _initialize_drift_baseline()
+
     print("✅ CITS API ready")
+
+
+def _initialize_model_store():
+    """Ensure the ModelStore has an active model. Seeks from disk if DB is empty."""
+    db = SessionLocal()
+    try:
+        from app.models import ModelStore
+        if db.query(ModelStore).count() == 0:
+            model_path = os.path.join(BASE_DIR, "model", "cits.pkl")
+            if os.path.exists(model_path):
+                print("   🤖 Seeding initial model from disk to DB...")
+                with open(model_path, "rb") as f:
+                    model_bytes = f.read()
+                
+                initial_model = ModelStore(
+                    version="v1.0",
+                    model_data=model_bytes,
+                    is_active=1,
+                    accuracy=0.94,
+                    f1_score=0.95
+                )
+                db.add(initial_model)
+                db.commit()
+                print("   ✅ Initial model ready")
+    except Exception as e:
+        print(f"   ⚠️ Could not initialize ModelStore: {e}")
+    finally:
+        db.close()
+
+
+def _initialize_drift_baseline():
+    """Save initial drift baseline if none exists."""
+    from ml.drift_detection import load_baseline, save_baseline
+    if load_baseline() is not None:
+        return
+    db = SessionLocal()
+    try:
+        from app.models import Review
+        reviews = db.query(Review).all()
+        if reviews:
+            save_baseline(reviews)
+            print("   📈 Drift baseline initialized")
+    except Exception:
+        pass
+    finally:
+        db.close()
 
 
 def _initialize_metadata():
     """Compute and persist initial model metrics if metadata has zero values."""
     metadata = load_metadata()
     if metadata.get("accuracy", 0) > 0:
-        return  # Already initialized
+        return
 
-    model_path = os.path.join(BASE_DIR, "model", "cits.pkl")
-    if not os.path.exists(model_path):
+    from app.routes.reviews import get_model
+    model = get_model()
+    if not model:
         return
 
     db = SessionLocal()
@@ -66,16 +117,12 @@ def _initialize_metadata():
         if len(reviews) < 20:
             return
 
-        with open(model_path, "rb") as f:
-            model = pickle.load(f)
-
         texts = [clean_text(r.text) for r in reviews]
         labels = [1 if r.rating > 3 else 0 for r in reviews]
-        _, X_test, _, y_test = train_test_split(texts, labels, test_size=0.2, random_state=42)
-
+        _, X_test, _, y_test = train_test_split(texts, labels, test_size=0.2)
         metrics = evaluate_model(model, X_test, y_test)
+        
         valid_count = sum(1 for r in reviews if r.text and len(r.text.strip()) > 10)
-
         metadata.update({
             "accuracy": metrics["accuracy"],
             "f1_score": metrics["f1"],
@@ -86,9 +133,9 @@ def _initialize_metadata():
             "dataset_rejected": len(reviews) - valid_count,
         })
         save_metadata(metadata)
-        print(f"   📊 Initial metrics: acc={metrics['accuracy']:.4f}, f1={metrics['f1']:.4f}")
+        print(f"   📊 Initial stats: acc={metrics['accuracy']:.4f}, f1={metrics['f1']:.4f}")
     except Exception as e:
-        print(f"   ⚠️ Could not initialize metrics: {e}")
+        print(f"   ⚠️ Metadata init error: {e}")
     finally:
         db.close()
 
@@ -99,32 +146,17 @@ def _serve_template(filename: str) -> HTMLResponse:
     with open(filepath, "r") as f:
         return HTMLResponse(content=f.read())
 
-
 @app.get("/", response_class=HTMLResponse)
-def home():
-    """Serve the user-facing product page."""
-    return _serve_template("user.html")
-
+def home(): return _serve_template("user.html")
 
 @app.get("/user", response_class=HTMLResponse)
-def user_page():
-    """Serve the user-facing product page."""
-    return _serve_template("user.html")
-
+def user_page(): return _serve_template("user.html")
 
 @app.get("/admin", response_class=HTMLResponse)
-def admin_page():
-    """Serve the admin dashboard."""
-    return _serve_template("admin.html")
-
+def admin_page(): return _serve_template("admin.html")
 
 @app.get("/admin/reviews", response_class=HTMLResponse)
-def admin_reviews_page():
-    """Serve the admin reviews page."""
-    return _serve_template("reviews.html")
+def admin_reviews_page(): return _serve_template("reviews.html")
 
-
-# --- Health Check ---
 @app.get("/health")
-def health():
-    return {"status": "Online", "version": "1.0"}
+def health(): return {"status": "Online", "version": "1.0"}

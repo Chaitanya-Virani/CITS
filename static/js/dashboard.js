@@ -150,8 +150,8 @@ function renderComparisonTable(comparison) {
     tbody.innerHTML = '';
     comparison.forEach(row => {
         const tr = document.createElement('tr');
-        const deltaClass = row.delta.startsWith('+') ? 'delta-positive' :
-            row.delta.startsWith('-') ? 'delta-negative' : '';
+        const deltaClass = row.delta.includes('▲') ? 'delta-positive' :
+            row.delta.includes('▼') ? 'delta-negative' : '';
         tr.innerHTML = `
       <td class="font-medium">${row.metric}</td>
       <td class="mono">${row.current}</td>
@@ -255,6 +255,8 @@ async function pollRetrainStatus(btn) {
                     alert(`✅ ${result.message}\nAccuracy: ${(result.accuracy * 100).toFixed(1)}%\nF1: ${(result.f1_score * 100).toFixed(1)}%`);
                 } else if (result.status === 'rejected') {
                     alert(`⚠️ ${result.message}`);
+                } else if (result.status === 'skipped') {
+                    alert(`ℹ️ ${result.message}`);
                 } else {
                     alert(`❌ ${result.message}`);
                 }

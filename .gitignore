@@ -41,3 +41,12 @@ Thumbs.db
 
 # --- Legacy UI ---
 UI/
+
+# --- Postman test files ---
+postman_*.json
+
+# --- Model backups ---
+model/cits_v*.pkl
+
+# --- Gemini agent ---
+.gemini/

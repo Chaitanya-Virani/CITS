@@ -44,6 +44,69 @@ def check_urgency(text: str) -> dict:
 
 
 # ============================================================
+# FAKE REVIEW PROBABILITY SCORING
+# ============================================================
+
+def compute_fake_score(text: str, rating: int, sentiment: str,
+                       model=None, cleaned_text: str = "") -> float:
+    """
+    Multi-signal fake review probability (0.0 = genuine, 1.0 = fake).
+
+    Signals:
+    1. Text length — very short or generic reviews are suspicious
+    2. Model uncertainty — prediction probability near 0.5
+    3. Rating-sentiment mismatch — 5★ but model says Negative
+    4. Word repetition — high repetition ratio is suspicious
+    5. Extreme rating + vague text — 1★ or 5★ with < 30 chars
+    """
+    if not isinstance(text, str) or len(text.strip()) < 3:
+        return 0.5  # Unknown → moderate suspicion
+
+    score = 0.0
+    clean = cleaned_text or clean_text(text)
+    words = clean.split()
+    word_count = len(words)
+
+    # Signal 1: Text length (very short reviews are suspicious)
+    if word_count < 5:
+        score += 0.25
+    elif word_count < 10:
+        score += 0.10
+
+    # Signal 2: Model uncertainty (probability near 0.5 = confused = suspicious)
+    if model is not None:
+        try:
+            proba = model.predict_proba([clean])[0]
+            confidence = max(proba)
+            if confidence < 0.6:
+                score += 0.25  # Very uncertain
+            elif confidence < 0.75:
+                score += 0.12
+        except Exception:
+            pass
+
+    # Signal 3: Rating-sentiment mismatch
+    if rating >= 4 and sentiment == "Negative":
+        score += 0.30  # High rating but negative text = suspicious
+    elif rating <= 2 and sentiment == "Positive":
+        score += 0.20  # Low rating but positive text = somewhat suspicious
+
+    # Signal 4: Word repetition ratio
+    if word_count > 3:
+        unique_ratio = len(set(words)) / word_count
+        if unique_ratio < 0.4:
+            score += 0.20  # Very repetitive
+        elif unique_ratio < 0.6:
+            score += 0.08
+
+    # Signal 5: Extreme rating + vague (short) text
+    if rating in (1, 5) and word_count < 8:
+        score += 0.15
+
+    return round(min(score, 1.0), 4)
+
+
+# ============================================================
 # TRUST SCORE COMPUTATION
 # ============================================================
 
