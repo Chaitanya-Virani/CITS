@@ -108,8 +108,11 @@ def detect_language(text: str) -> str:
 
 
 # ════════════════════════════════════════════════════════════════
-# KEYWORD PERSISTENCE (DB)
+# KEYWORD PERSISTENCE (DB & CACHE)
 # ════════════════════════════════════════════════════════════════
+
+_KEYWORD_CACHE = None
+_CACHE_TIMESTAMP = None
 
 def _default_keywords() -> dict:
     return {
@@ -124,21 +127,35 @@ def _default_keywords() -> dict:
 
 
 def load_urgency_keywords() -> dict:
-    """Load urgency keywords from the MLMetadata table."""
+    """Load urgency keywords with in-memory caching."""
+    global _KEYWORD_CACHE, _CACHE_TIMESTAMP
+    
+    # Simple cache: valid for 5 minutes
+    if _KEYWORD_CACHE and _CACHE_TIMESTAMP:
+        delta = (datetime.utcnow() - _CACHE_TIMESTAMP).total_seconds()
+        if delta < 300: # 5 minutes
+            return _KEYWORD_CACHE
+
     db = SessionLocal()
     try:
         row = db.query(MLMetadata).filter(MLMetadata.key == "urgency_keywords").first()
         if not row:
             data = _default_keywords()
             save_urgency_keywords(data)
+            _KEYWORD_CACHE = data
+            _CACHE_TIMESTAMP = datetime.utcnow()
             return data
-        return row.value
+        
+        _KEYWORD_CACHE = row.value
+        _CACHE_TIMESTAMP = datetime.utcnow()
+        return _KEYWORD_CACHE
     finally:
         db.close()
 
 
 def save_urgency_keywords(data: dict) -> None:
-    """Save urgency keywords to the MLMetadata table."""
+    """Save urgency keywords and invalidate cache."""
+    global _KEYWORD_CACHE, _CACHE_TIMESTAMP
     db = SessionLocal()
     try:
         row = db.query(MLMetadata).filter(MLMetadata.key == "urgency_keywords").first()
@@ -149,6 +166,10 @@ def save_urgency_keywords(data: dict) -> None:
             row = MLMetadata(key="urgency_keywords", value=data)
             db.add(row)
         db.commit()
+        
+        # Update cache
+        _KEYWORD_CACHE = data
+        _CACHE_TIMESTAMP = datetime.utcnow()
     finally:
         db.close()
 

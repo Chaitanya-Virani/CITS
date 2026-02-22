@@ -31,29 +31,37 @@ router = APIRouter(prefix="/api", tags=["Admin"])
 
 @router.get("/model-metrics", response_model=ModelMetricsResponse)
 def get_model_metrics(db: Session = Depends(get_db)):
-    model = get_model()
+    metadata = load_metadata()
     reviews = db.query(Review).all()
     total = len(reviews)
-    metadata = load_metadata()
+    
+    # Use persisted metrics if available
+    accuracy = metadata.get("accuracy", 0)
+    f1 = metadata.get("f1_score", 0)
+    precision = metadata.get("precision", 0)
+    recall = metadata.get("recall", 0)
 
-    if total >= 20 and model:
-        texts = [clean_text(r.text) for r in reviews]
-        labels = [1 if r.rating > 3 else 0 for r in reviews]
-        _, X_test, _, y_test = train_test_split(texts, labels, test_size=0.2)
-        live = evaluate_model(model, X_test, y_test)
-    else:
-        live = {"accuracy": 0, "f1": 0, "precision": 0, "recall": 0}
-
-    accuracy = metadata.get("accuracy") or live["accuracy"]
-    f1 = metadata.get("f1_score") or live["f1"]
-    precision = metadata.get("precision") or live["precision"]
-    recall = metadata.get("recall") or live["recall"]
-
-    if accuracy == 0 and live["accuracy"] > 0:
-        accuracy, f1, precision, recall = live["accuracy"], live["f1"], live["precision"], live["recall"]
-        valid_count = sum(1 for r in reviews if r.text and len(r.text.strip()) > 10)
-        metadata.update({"accuracy": accuracy, "f1_score": f1, "precision": precision, "recall": recall, "dataset_size": total, "dataset_cleaned": valid_count, "dataset_rejected": total-valid_count})
-        save_metadata(metadata)
+    # Only compute live if metadata is empty and we have enough reviews
+    if accuracy == 0 and total >= 20:
+        model = get_model()
+        if model:
+            texts = [clean_text(r.text) for r in reviews]
+            labels = [1 if r.rating > 3 else 0 for r in reviews]
+            _, X_test, _, y_test = train_test_split(texts, labels, test_size=0.2)
+            live = evaluate_model(model, X_test, y_test)
+            
+            accuracy = live["accuracy"]
+            f1 = live["f1"]
+            precision = live["precision"]
+            recall = live["recall"]
+            
+            # Persist it so we don't do this again
+            valid_count = sum(1 for r in reviews if r.text and len(r.text.strip()) > 10)
+            metadata.update({
+                "accuracy": accuracy, "f1_score": f1, "precision": precision, "recall": recall,
+                "dataset_size": total, "dataset_cleaned": valid_count, "dataset_rejected": total-valid_count
+            })
+            save_metadata(metadata)
 
     last_retrain = metadata.get("last_retrained", "Unknown")
     try:

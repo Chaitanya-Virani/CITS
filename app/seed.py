@@ -1,7 +1,6 @@
 """
 CITS — Database Seeder
-Imports amazon_vfl_reviews.csv and the initial ML model into the database.
-Supports both PostgreSQL and SQLite.
+Optimized version with batch inference and keyword caching.
 """
 import os
 import sys
@@ -24,35 +23,33 @@ def seed():
 
     db = SessionLocal()
 
-    # 1. Seed Model Store if empty
+    # 1. Seed Model Store
     print("🤖 Checking Model Store...")
-    if db.query(ModelStore).count() == 0:
+    model_row = db.query(ModelStore).filter(ModelStore.is_active == 1).first()
+    if not model_row:
         model_path = os.path.join(BASE_DIR, "model", "cits.pkl")
         if os.path.exists(model_path):
-            print(f"   Loading model from disk: {model_path}")
             with open(model_path, "rb") as f:
                 model_bytes = f.read()
-                model = pickle.loads(model_bytes)
-            
-            initial_model = ModelStore(
-                version="v1.0",
-                model_data=model_bytes,
-                is_active=1,
-                accuracy=0.94,  # Placeholder for initial seed
-                f1_score=0.95
+            model_row = ModelStore(
+                version="v1.0", model_data=model_bytes, is_active=1,
+                accuracy=0.94, f1_score=0.95
             )
-            db.add(initial_model)
+            db.add(model_row)
             db.commit()
-            print("   ✅ Initial model (v1.0) seeded to DB.")
+            print("   ✅ Initial model seeded.")
         else:
-            print("   ⚠️ No cits.pkl found on disk to seed.")
+            print("   ⚠️ No model found to seed.")
+            model = None
     else:
-        print("   ✅ Model Store already has models.")
+        print("   ✅ Model already in DB.")
+        
+    model = pickle.loads(model_row.model_data) if model_row else None
 
     # 2. Seed Products
     print("📦 Checking Products...")
     if db.query(Product).count() > 0:
-        print("   ✅ Products already seeded. Skipping CSV import.")
+        print("   ✅ Products already seeded.")
         db.close()
         return
 
@@ -64,35 +61,55 @@ def seed():
 
     print(f"📄 Reading CSV: {csv_path}")
     df = pd.read_csv(csv_path).dropna(subset=["review", "rating"])
-    
-    # Load model for inference during seeding
-    active_model_row = db.query(ModelStore).filter(ModelStore.is_active == 1).first()
-    model = pickle.loads(active_model_row.model_data) if active_model_row else None
+    total_rows = len(df)
 
+    # ── 3. High Performance Inference ─────────────────────────
+    # We do the expensive ML part in ONE batch outside the loop
+    print(f"🧠 Running batch inference on {total_rows} reviews...")
+    cleaned_texts = [clean_text(r) for r in df["review"]]
+    
+    if model:
+        # Batch predict sentiments
+        sentiments = ["Positive" if p == 1 else "Negative" for p in model.predict(cleaned_texts)]
+        # Batch predict probabilities for fake score
+        probas = model.predict_proba(cleaned_texts)
+    else:
+        sentiments = ["Positive"] * total_rows
+        probas = [None] * total_rows
+
+    # ── 4. Save Products ──────────────────────────────────────
+    print("🏷️ Saving products...")
     product_map = {}
     unique_products = df[["asin", "name"]].drop_duplicates(subset="asin")
-
     for _, row in unique_products.iterrows():
-        product = Product(asin=row["asin"], name=row["name"])
-        db.add(product)
+        p = Product(asin=row["asin"], name=row["name"])
+        db.add(p)
         db.flush()
-        product_map[row["asin"]] = product.id
-    
-    # 3. Seed Reviews
-    print("📝 Processing reviews...")
-    batch_size = 100
-    for i, (_, row) in enumerate(df.iterrows()):
-        cleaned = clean_text(row["review"])
-        sentiment = "Positive"
-        fake_prob = 0.0
-        
-        if model:
-            sentiment = "Positive" if model.predict([cleaned])[0] == 1 else "Negative"
-            fake_prob = compute_fake_score(row["review"], int(row["rating"]), sentiment, model, cleaned)
+        product_map[row["asin"]] = p.id
 
+    # ── 5. Save Reviews ───────────────────────────────────────
+    print("📝 Saving reviews to database...")
+    batch_size = 200
+    for i, (_, row) in enumerate(df.iterrows()):
+        sentiment = sentiments[i]
+        
+        # Urgency is fast because keywords are cached now
         urgency = check_urgency_adaptive(row["review"])
         is_urgent = urgency["is_urgent"]
         
+        # Fake score signal computation
+        # Note: model.predict_proba is already done, we just pass the proba
+        fake_prob = compute_fake_score(
+            row["review"], int(row["rating"]), sentiment, 
+            model=None, # Pass None so it doesn't re-run inference inside utils
+            cleaned_text=cleaned_texts[i]
+        )
+        
+        # If we have the probability from the batch, use it to refine
+        if probas[i] is not None:
+            conf = max(probas[i])
+            if conf < 0.6: fake_prob = min(fake_prob + 0.2, 1.0)
+
         try:
             r_date = datetime.strptime(str(row["date"]), "%Y-%m-%d").date()
         except:
@@ -100,19 +117,17 @@ def seed():
 
         db.add(Review(
             product_id=product_map[row["asin"]],
-            author="Amazon User",
-            rating=int(row["rating"]),
-            text=str(row["review"]),
-            sentiment=sentiment,
+            author="Amazon User", rating=int(row["rating"]),
+            text=str(row["review"]), sentiment=sentiment,
             priority="High" if is_urgent else "Normal",
             flag="🚨 URGENT" if is_urgent else "✅ OK",
-            is_fake_prob=fake_prob,
-            date=r_date
+            is_fake_prob=fake_prob, date=r_date
         ))
 
         if (i + 1) % batch_size == 0:
             db.commit()
-            print(f"   Processed {i+1}/{len(df)}...")
+            if (i + 1) % 1000 == 0:
+                print(f"   Saved {i+1}/{total_rows}...")
 
     db.commit()
     db.close()
