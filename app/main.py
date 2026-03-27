@@ -20,15 +20,29 @@ def _keep_alive():
     import time
     url = os.environ.get("RENDER_EXTERNAL_URL", "")
     if not url:
-        return  # Not on Render, skip
+        print("ℹ️ RENDER_EXTERNAL_URL not set, skipping keep-alive")
+        return
+    
     health_url = f"{url}/health"
-    print(f"🏓 Keep-alive started → pinging {health_url} every 10 min")
+    print(f"🏓 Keep-alive started → target: {health_url}")
+    
+    # Ping once immediately to verify
+    try:
+        with urllib.request.urlopen(health_url, timeout=15) as r:
+            print(f"✅ Initial keep-alive ping successful (Status: {r.getcode()})")
+    except Exception as e:
+        print(f"⚠️ Initial keep-alive ping failed: {e}")
+
     while True:
         time.sleep(600)  # 10 minutes
         try:
-            urllib.request.urlopen(health_url, timeout=10)
-        except Exception:
-            pass
+            # Bypass cache with timestamp
+            ts_url = f"{health_url}?t={int(time.time())}"
+            with urllib.request.urlopen(ts_url, timeout=15) as r:
+                if r.getcode() == 200:
+                    print(f"🏓 Periodic keep-alive successful ({time.strftime('%H:%M:%S')})")
+        except Exception as e:
+            print(f"⚠️ Periodic keep-alive failed: {e}")
 
 
 # --- App ---
