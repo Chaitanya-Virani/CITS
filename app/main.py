@@ -1,9 +1,7 @@
-"""
-CITS — Customer Intelligent Trust Scoring
-FastAPI Application Entry Point
-"""
 import os
 import pickle
+import threading
+import urllib.request
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -14,6 +12,24 @@ from app.routes import products, reviews, summary, admin
 from app.utils import clean_text
 from ml.metrics_service import load_metadata, save_metadata
 from ml.evaluate import evaluate_model
+
+
+# --- Keep-Alive Self-Ping (prevents Render free-tier sleep) ---
+def _keep_alive():
+    """Ping own /health endpoint every 10 minutes to prevent Render sleep."""
+    import time
+    url = os.environ.get("RENDER_EXTERNAL_URL", "")
+    if not url:
+        return  # Not on Render, skip
+    health_url = f"{url}/health"
+    print(f"🏓 Keep-alive started → pinging {health_url} every 10 min")
+    while True:
+        time.sleep(600)  # 10 minutes
+        try:
+            urllib.request.urlopen(health_url, timeout=10)
+        except Exception:
+            pass
+
 
 # --- App ---
 app = FastAPI(
@@ -49,6 +65,9 @@ def on_startup():
     # Initialize metadata & drift
     _initialize_metadata()
     _initialize_drift_baseline()
+
+    # Start keep-alive background thread
+    threading.Thread(target=_keep_alive, daemon=True).start()
 
     print("✅ CITS API ready")
 
