@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fa25d59b-25d7-4dc0-80c0-3a52251dfa40" name="Changes" comment="Updated UI and DB setup">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/cits.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/model/cits.pkl" afterDir="false" />
-    </list>
+    <list default="true" id="fa25d59b-25d7-4dc0-80c0-3a52251dfa40" name="Changes" comment="Updated UI and DB setup" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

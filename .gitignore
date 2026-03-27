@@ -31,6 +31,10 @@ data/*.db
 # --- Anaconda / Metadata ---
 anaconda_projects/
 
+# --- Environment ---
+.env
+.env.*
+
 # --- System Files ---
 .DS_Store
 Thumbs.db

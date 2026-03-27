@@ -11,6 +11,13 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+# ── Load .env for local development (no-op on Render) ────────
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 # ── Connection URL ────────────────────────────────────────────
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
@@ -18,7 +25,14 @@ if DATABASE_URL:
     # Render uses "postgres://" but SQLAlchemy needs "postgresql://"
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_size=5,           # Max persistent connections
+        max_overflow=10,       # Extra connections under load
+        pool_timeout=30,       # Seconds to wait for a connection
+        pool_recycle=300,      # Recycle connections every 5 min (prevents stale)
+    )
 else:
     # Local development — SQLite
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
