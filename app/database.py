@@ -19,7 +19,8 @@ except ImportError:
     pass
 
 # ── Connection URL ────────────────────────────────────────────
-DATABASE_URL = os.environ.get("DATABASE_URL", "")
+# Prefer SUPABASE_DB_URL to avoid Render auto-injecting its own DATABASE_URL
+DATABASE_URL = os.environ.get("SUPABASE_DB_URL") or os.environ.get("DATABASE_URL", "")
 
 if DATABASE_URL:
     # Render uses "postgres://" but SQLAlchemy needs "postgresql://"
